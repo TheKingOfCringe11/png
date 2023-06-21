@@ -241,7 +241,7 @@ Image.depth = 0
 Image.colorType = 0
 Image.scanLines = {}
 
-function Image:__init(path, progCallback)
+function Image:__init(path, scanline_callback)
 	local str = Stream({inputF = path})
 	if str:readChars(8) ~= "\137\080\078\071\013\010\026\010" then error 'Not a PNG' end
 	local ihdr = {}
@@ -267,8 +267,9 @@ function Image:__init(path, progCallback)
 	local imStr = Stream({input = table.concat(output)})
 
 	for i = 1, self.height do
-		self.scanLines[i] = ScanLine(imStr, self.depth, self.colorType, plte, self.width)
-		if progCallback ~= nil then progCallback(i, self.height) end
+		local scanline = ScanLine(imStr, self.depth, self.colorType, plte, self.width)
+		self.scanLines[i] = scanline
+		if scanline_callback ~= nil then scanline_callback(i, scanline) end
 	end
 end
 

@@ -1,8 +1,9 @@
-local class = require '30log'
-local deflate = require 'deflate'
-require 'stream'
+local class = require("png/30log")
+local deflate = require("png/deflate")
 
-Chunk = class()
+local Stream = require("png/Stream")
+
+local Chunk = class()
 Chunk.__name = "Chunk"
 Chunk.length = 0
 Chunk.name = ""

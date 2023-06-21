@@ -1,5 +1,5 @@
-class = require '30log'
-deflate = require 'deflate'
+local class = require '30log'
+local deflate = require 'deflate'
 require 'stream'
 
 Chunk = class()
@@ -133,8 +133,8 @@ ScanLine.pixels = {}
 ScanLine.filterType = 0
 
 function ScanLine:__init(stream, depth, colorType, palette, length)
-	bpp = math.floor(depth/8) * self:bitFromColorType(colorType)
-	bpl = bpp*length
+	local bpp = math.floor(depth/8) * self:bitFromColorType(colorType)
+	local bpl = bpp*length
 	self.filterType = stream:readByte()
 	stream:seek(-1)
 	stream:writeByte(0)
@@ -232,15 +232,15 @@ function ScanLine:_PaethPredict(a, b, c)
 	return c
 end
 
-pngImage = class()
-pngImage.__name = "PNG"
-pngImage.width = 0
-pngImage.height = 0
-pngImage.depth = 0
-pngImage.colorType = 0
-pngImage.scanLines = {}
+local Image = class()
+Image.__name = "PNG"
+Image.width = 0
+Image.height = 0
+Image.depth = 0
+Image.colorType = 0
+Image.scanLines = {}
 
-function pngImage:__init(path, progCallback)
+function Image:__init(path, progCallback)
 	local str = Stream({inputF = path})
 	if str:readChars(8) ~= "\137\080\078\071\013\010\026\010" then error 'Not a PNG' end
 	local ihdr = {}
@@ -248,7 +248,7 @@ function pngImage:__init(path, progCallback)
 	local idat = {}
 	local num = 1
 	while true do
-		ch = Chunk(str)
+		local ch = Chunk(str)
 		if ch.name == "IHDR" then ihdr = IHDR(ch) end
 		if ch.name == "PLTE" then plte = PLTE(ch) end
 		if ch.name == "IDAT" then idat[num] = IDAT(ch) num = num+1 end
@@ -263,7 +263,7 @@ function pngImage:__init(path, progCallback)
 	for k,v in pairs(idat) do dataStr = dataStr .. v.data end
 	local output = {}
 	deflate.inflate_zlib {input = dataStr, output = function(byte) output[#output+1] = string.char(byte) end, disable_crc = true}
-	imStr = Stream({input = table.concat(output)})
+	local imStr = Stream({input = table.concat(output)})
 
 	for i = 1, self.height do
 		self.scanLines[i] = ScanLine(imStr, self.depth, self.colorType, plte, self.width)
@@ -271,7 +271,13 @@ function pngImage:__init(path, progCallback)
 	end
 end
 
-function pngImage:getPixel(x, y)
+function Image:getPixel(x, y)
 	local pixel = self.scanLines[y].pixels[x]
 	return pixel
 end
+
+local png = {
+	Image = Image
+}
+
+return png
